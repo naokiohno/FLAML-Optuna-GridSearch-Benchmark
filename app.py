@@ -80,7 +80,7 @@ def objective(trial):
 
 
 study = optuna.create_study(direction='maximize', sampler=optuna.samplers.TPESampler())
-study.optimize(lambda trial: objective(trial), n_trials=250)
+study.optimize(lambda trial: objective(trial), n_trials=100)
 print('Best trial: score {},\nparams {}'.format(study.best_trial.value, study.best_trial.params))
 
 # Get CV score of the best model
@@ -102,16 +102,17 @@ xgb_optuna_tuned_cv = cross_val_score(estimator=xgb_mod_optuna,
 
 xgb_mod_optuna_cv_score = np.mean(xgb_optuna_tuned_cv)
 print(xgb_mod_optuna_cv_score)
+# 0.669
 
 # Fit final model.
-final_model = xgb_mod_upd.fit(X=train_x_trans, y=solTrainY)
+final_optuna_model = xgb_mod_optuna.fit(X=train_x_trans, y=solTrainY)
 # Predict test set values
-final_predictions = final_model.predict(X=test_x_trans)
+final_optuna_predictions = final_optuna_model.predict(X=test_x_trans)
 
-root_mean_squared_error(solTestY, final_predictions)
-# This is the best model so far with an RMSE of 0.593.
+root_mean_squared_error(solTestY, final_optuna_predictions)
+# This is the best model so far with an RMSE of 0.568.
 
-# Manually tune XGB models ----------------------------------------------------
+# Manually tune XGB models ---------------------------------------------------------------------------------------------
 
 xgb_grid = {
     "n_estimators": [1000],
@@ -134,21 +135,20 @@ xgb_manual_grid_mod.fit(train_x_trans, solTrainY)
 grid_search_result = pd.DataFrame(xgb_manual_grid_mod.cv_results_)
 
 print(grid_search_result['mean_test_score'])
+# 0.695
 
-'''
-final_model = xgb_manual_grid_mod.fit(X=train_x_trans, y=solTrainY)
-# Predict test set values
-final_predictions = final_model.predict(X=test_x_trans)
+final_model_manual = xgb_manual_grid_mod.fit(X=train_x_trans, y=solTrainY)
 
-root_mean_squared_error(solTestY, final_predictions)
-# 0.598. Good final score. It's essentially the same as the optuna trained one.
-# Just a tiny bit worse than the FLAML model.
-'''
+#Predict test set values
+final_predictions_manual = final_model_manual.predict(X=test_x_trans)
+
+root_mean_squared_error(solTestY, final_predictions_manual)
+# 0.599.
 
 # AutoML using FLAML ---------------------------------------------------------------------------------------------------
 
 automl = AutoML()
-automl.fit(train_x_trans, solTrainY, task="regression", time_budget=1800)
+automl.fit(train_x_trans, solTrainY, task="regression", time_budget=600)
 
 # Print best model
 print(automl.model.estimator)
@@ -161,10 +161,10 @@ automl_cv_score = cross_val_score(estimator=automl.model,
                                   verbose=2)
 
 np.mean(automl_cv_score)
+# 0.69
 
 # Predict the test set
-pred = automl.predict(test_x_trans)
-root_mean_squared_error(test_y, pred)
+pred_automl = automl.predict(test_x_trans)
+root_mean_squared_error(solTestY, pred_automl)
 
-# Test set error: 0.5847
-# This is slightly better than my tuned xgb model from earlier today.
+# 0.58
