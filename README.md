@@ -6,7 +6,7 @@ Benchmarking the following hyperparameter tuning approaches: FLAML AutoML, Optun
 * For all tuning approaches, an xgboost model was used.
 * All tuning methods aside from no tuning performed comparably, with a slight edge to the automated tuning approaches.
 
-**Conclusion:** Automated hyperparameter tuning achieves state-of-the art performance. At the same time, it is much less computationally expensive compared to a full grid search, and requires much less active development time compared to an involved manual hyperparameter tuning approach. It is a valuable addition to a data scientist's skill set, especially when working on time-sensitive projects, or when quick prototyping is required. When lacking deep subject matter knowledge on a certain problem, these approaches create a great baseline model.
+**Conclusion:** Automated hyperparameter tuning achieves state-of-the art performance. At the same time, it is much less computationally expensive compared to a full grid search, and requires much less active development time compared to an involved manual hyperparameter tuning approach. It is a valuable addition to a data scientist's toolbox, especially when working on time-sensitive projects, or when quick prototyping is required. When lacking deep subject matter knowledge on a certain problem, these approaches create a great baseline model.
 
 | Tuning method | Cross-val RMSE| Test set RMSE  |
 | ------------- |:-------------:| :-------------:|
