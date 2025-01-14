@@ -1,3 +1,4 @@
+
 # Load libraries -------------------------------------------------------------------------------------------------------
 
 import pandas as pd
@@ -33,7 +34,7 @@ test_x_trans = pipe.transform(solTestX)
 
 # XGBoost model with default hyperparameters ---------------------------------------------------------------------------
 
-# Standard model without tuning
+# Standard xgb model without tuning
 xgb_mod = xgb.XGBRegressor(objective="reg:squarederror")
 
 xgb_mod_default_cv = cross_val_score(estimator=xgb_mod,
@@ -45,7 +46,17 @@ xgb_mod_default_cv = cross_val_score(estimator=xgb_mod,
 
 xgb_mod_default_cv_score = np.mean(xgb_mod_default_cv)
 print(xgb_mod_default_cv_score)
+# 0.809
 
+# Fit final model on full dataset
+final_model_default = xgb_mod.fit(X=train_x_trans, y=solTrainY)
+
+# Predict test set values
+final_predictions = final_model_default.predict(X=test_x_trans)
+
+rmse_default = root_mean_squared_error(solTestY, final_predictions)
+print(rmse_default)
+# 0.662
 
 # Automatic model tuning using Optuna ----------------------------------------------------------------------------------
 
@@ -62,7 +73,7 @@ def objective(trial):
         "min_child_weight": trial.suggest_int("min_child_weight", 1, 20),
     }
 
-    model = xgb.XGBRegressor()
+    model = xgb.XGBRegressor(**params)
     return cross_val_score(model, X=train_x_trans, y=solTrainY,
                            scoring='neg_root_mean_squared_error',
                            cv=5).mean()
@@ -73,7 +84,7 @@ study.optimize(lambda trial: objective(trial), n_trials=250)
 print('Best trial: score {},\nparams {}'.format(study.best_trial.value, study.best_trial.params))
 
 # Get CV score of the best model
-xgb_mod_upd = xgb.XGBRegressor(objective='reg:squarederror',
+xgb_mod_optuna = xgb.XGBRegressor(objective='reg:squarederror',
                                n_estimators=1000,
                                verbosity=0,
                                learning_rate=study.best_trial.params['learning_rate'],
@@ -82,17 +93,16 @@ xgb_mod_upd = xgb.XGBRegressor(objective='reg:squarederror',
                                colsample_bytree=study.best_trial.params['colsample_bytree'],
                                min_child_weight=study.best_trial.params['min_child_weight'])
 
-xgb_mod_tuned_cv = cross_val_score(estimator=xgb_mod_upd,
+xgb_optuna_tuned_cv = cross_val_score(estimator=xgb_mod_optuna,
                                    X=train_x_trans,
                                    y=solTrainY,
                                    cv=5,
                                    scoring='neg_root_mean_squared_error',
                                    verbose=2)
 
-xgb_mod_optuna_cv_score = np.mean(xgb_mod_tuned_cv)
+xgb_mod_optuna_cv_score = np.mean(xgb_optuna_tuned_cv)
 print(xgb_mod_optuna_cv_score)
 
-'''
 # Fit final model.
 final_model = xgb_mod_upd.fit(X=train_x_trans, y=solTrainY)
 # Predict test set values
@@ -100,7 +110,6 @@ final_predictions = final_model.predict(X=test_x_trans)
 
 root_mean_squared_error(solTestY, final_predictions)
 # This is the best model so far with an RMSE of 0.593.
-'''
 
 # Manually tune XGB models ----------------------------------------------------
 
