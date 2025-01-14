@@ -1,5 +1,5 @@
 # FLAML-Optuna-GridSearch-Benchmark
-Benchmarking the following hyperparameter tuning approaches: FLAML AutoML, Optuna automated hyperparameter search, and manual grid search, on the Solubility dataset from Applied Predictive Modeling by Max Kuhn.
+Benchmarking the following hyperparameter tuning approaches: FLAML AutoML, Optuna automated hyperparameter search, and manual grid search. The training dataset is the Solubility dataset from Applied Predictive Modeling by Max Kuhn (2016).
 
 * The tasks is a regression task that uses 228 molecular characteristics to predict the solubility of each molecule on a continuous scale.
 * 5-fold cross-validation is used during the model tuning process to evaluate RMSE.
